@@ -1,4 +1,4 @@
-# Tomas Urena 
+# Tomas Urena, Lin Wang, Mingfang Zhu
 # 10/10/2024
 # Project Part 2
 
