@@ -5,12 +5,52 @@
 import mysql.connector
 import sys
 
+try:
+    connection = mysql.connector.connect(
+    host = 'localhost',
+    database = 'cs482502',
+    user = 'dbuser',
+    password = 'Iwilldowell')
+    cursor = connection.cursor()
+except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        sys.exit(1)
+
+param = sys.argv[2]
+
 x = sys.argv[1]
 match x:
     case "1":
-        print()
+        query = """
+        SELECT *
+        FROM Sites 
+        WHERE LOWER(address) LIKE %s;
+        """
+        cursor.execute(query, ('%' + param.lower() + '%',))
+        results = cursor.fetchall()
+
+        if results:
+            print(f"Sites found on the street '{param}':")
+            for row in results:
+                print(f"id: {row[0]}, name: {row[1]}, Address: {row[2]}")
+        else:
+            print(f"No sites found on the street '{param}'.")
     case "2":
-        print()
+        query = """
+        SELECT d.serial_no, d.model_no, t.name
+        FROM DigitalDisplays d
+        JOIN TechnicalSupports t ON d.model_no = t.model_no
+        WHERE LOWER(d.scheduler_system) = LOWER(%s);
+        """
+        cursor.execute(query, (param,))
+        results = cursor.fetchall()
+
+        if results:
+            print("Digital Displays with the given scheduler system:")
+            for row in results:
+                print(f"Serial No: {row[0]}, Model No: {row[1]}, Technical Support: {row[2]}")
+        else:
+            print(f"No digital displays found with scheduler system: {param}")
     case "3":
         print()
     case "4":
@@ -18,10 +58,23 @@ match x:
     case "5":
         print()
     case "6":
-        print()
+        query = "SELECT T.name FROM TechnicalSupport T JOIN Specializes S ON T.empId = S.empId WHERE S.modelNo = " + param + ";"
+        results = cursor.execute_query(query)
+        for row in results:
+            print(row)
     case "7": 
-        print()
+        query = "SELECT S.name, AVG(P.commissionRate) AS avg_commission_rate FROM Salesman S JOIN Purchases P ON S.empId = P.empId GROUP BY S.name ORDER BY avg_commission_rate DESC;"
+        results = cursor.execute_query(query)
+        for row in results:
+            print(row)
     case "8":
-        print()
+        query = "SELECT 'Administrator' AS Role, COUNT(*) AS cnt FROM Administrator UNION SELECT 'Salesman' AS Role, COUNT(*) AS cnt FROM Salesman UNION SELECT 'Technician' AS Role, COUNT(*) AS cnt FROM TechnicalSupport;"
+        results = cursor.execute_query(query)
+        for row in results:
+            print(row)
         
-print('Hello') 
+if connection.is_connected():
+    cursor.close()
+    connection.close()
+
+
