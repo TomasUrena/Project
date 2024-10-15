@@ -16,10 +16,11 @@ except mysql.connector.Error as err:
         print(f"Error: {err}")
         sys.exit(1)
 
-param = sys.argv[2]
+questionNum = sys.argv[1]
+if(sys.argv[2] is None):
+    param = sys.argv[2]
 
-x = sys.argv[1]
-match x:
+match questionNum:
     case "1":
         query = """
         SELECT *
@@ -58,17 +59,17 @@ match x:
     case "5":
         print()
     case "6":
-        query = "SELECT T.name FROM TechnicalSupport T JOIN Specializes S ON T.empId = S.empId WHERE S.modelNo = " + param + ";"
+        query = "SELECT T.name FROM TechnicalSupport AS T JOIN Specializes AS S ON T.empId = S.empId WHERE S.modelNo = " + param + ";"
         results = cursor.execute_query(query)
         for row in results:
             print(row)
     case "7": 
-        query = "SELECT S.name, AVG(P.commissionRate) AS avg_commission_rate FROM Salesman S JOIN Purchases P ON S.empId = P.empId GROUP BY S.name ORDER BY avg_commission_rate DESC;"
+        query = "SELECT S.name, AVG(P.commissionRate) AS avgCommissionRate FROM Salesman AS S JOIN Purchases AS P ON S.empId = P.empId GROUP BY S.name ORDER BY avgCommissionRate DESC;"
         results = cursor.execute_query(query)
         for row in results:
             print(row)
     case "8":
-        query = "SELECT 'Administrator' AS Role, COUNT(*) AS cnt FROM Administrator UNION SELECT 'Salesman' AS Role, COUNT(*) AS cnt FROM Salesman UNION SELECT 'Technician' AS Role, COUNT(*) AS cnt FROM TechnicalSupport;"
+        query = "SELECT 'Administrator' AS Role, COUNT(*) AS C FROM Administrator UNION SELECT 'Salesman' AS Role, COUNT(*) AS C FROM Salesman UNION SELECT 'Technician' AS Role, COUNT(*) AS C FROM TechnicalSupport;"
         results = cursor.execute_query(query)
         for row in results:
             print(row)
