@@ -5,6 +5,10 @@
 import mysql.connector
 import sys
 
+if len(sys.argv) < 2:
+    print("Error Needs Querery Number.")
+    exit(1)
+
 try:
     connection = mysql.connector.connect(
     host = 'localhost',
@@ -17,7 +21,7 @@ except mysql.connector.Error as err:
         sys.exit(1)
 
 questionNum = sys.argv[1]
-if(sys.argv[2] is None):
+if len(sys.argv) == 3:
     param = sys.argv[2]
 
 match questionNum:
