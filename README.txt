@@ -5,7 +5,7 @@ Team members:
     Mingfang Zhu 
 Work Allocation:
     Tomas: Queries 6, 7, and 8
-    Lin: Initialize database connection; Queries 1 and 2
+    Lin: Initialize database connection; Queries 1 and 2; Final Submission.
     Mingfang: README file; Queries 3, 4, and 5
 
 How to Run the Program
