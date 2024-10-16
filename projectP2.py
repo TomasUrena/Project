@@ -7,7 +7,7 @@ import sys
 
 if len(sys.argv) < 2:
     print("Error Needs Querery Number.")
-    exit(1)
+    sys.exit(1)
 
 try:
     connection = mysql.connector.connect(
@@ -21,8 +21,7 @@ except mysql.connector.Error as err:
         sys.exit(1)
 
 questionNum = sys.argv[1]
-if len(sys.argv) == 3:
-    param = sys.argv[2]
+param = sys.argv[2] if len(sys.argv) > 2 else None
 
 match questionNum:
     case "1":
@@ -57,11 +56,72 @@ match questionNum:
         else:
             print(f"No digital displays found with scheduler system: {param}")
     case "3":
-        print()
+        query = """
+        SELECT name, COUNT(*) AS cnt
+        FROM Salesman
+        GROUP BY name
+        ORDER BY name ASC;
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+        
+        print("Name\tCount")
+        
+        for row in results:
+            name, count = row
+            print(f"{name}\t{count}")
+
+            # If count > 1, show the full attributes
+            if count > 1:
+                query_details = """
+                SELECT empId, name, gender
+                FROM Salesman
+                WHERE name = %s;
+                """
+                cursor.execute(query_details, (name,))
+                details = cursor.fetchall()
+                # print(f"Details for {name}:")
+                # for detail in details:
+                #     empId, name, gender = detail
+                #     print(f"({empId}, {name}, {gender})")
+                # print("-" * 30)
+                
+                detail_str = ', '.join([f"({empId}, {name}, {gender})" for empId, name, gender in details])
+                print(f"{detail_str}")
     case "4":
-        print()
+        query = """
+        SELECT * 
+        FROM Client
+        WHERE phone_no = %s;
+        """
+        cursor.execute(query, (param,))
+        results = cursor.fetchall()
+        
+        if results:
+            print(f"Clients with phone number '{param}':")
+            for row in results:
+                clientId, name, phone, address = row
+                print(f"ID: {clientId}, Name: {name}, Phone: {phone}, Address: {address}")
+        else:
+            print(f"No clients found with phone number: {param}")
     case "5":
-        print()
+        query = """
+        SELECT a.empId, a.name, SUM(w.hours) AS total_hours
+        FROM Administrator a
+        JOIN AdmWorkHours w ON a.empId = w.empId
+        GROUP BY a.empId, a.name
+        ORDER BY total_hours ASC;
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+        
+        if results:
+            print("EmpID\tName\tTotal Hours")
+            for row in results:
+                empId, name, total_hours = row
+                print(f"{empId}\t{name}\t{total_hours}")
+        else:
+            print("No administrator work hours found.")
     case "6":
         query = "SELECT T.name FROM TechnicalSupport AS T JOIN Specializes AS S ON T.empId = S.empId WHERE S.modelNo = " + param + ";"
         results = cursor.execute_query(query)
