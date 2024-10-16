@@ -123,20 +123,43 @@ match questionNum:
         else:
             print("No administrator work hours found.")
     case "6":
-        query = "SELECT T.name FROM TechnicalSupport AS T JOIN Specializes AS S ON T.empId = S.empId WHERE S.modelNo = " + param + ";"
-        results = cursor.execute_query(query)
+        query = """
+        SELECT T.name 
+        FROM TechnicalSupport AS T 
+        JOIN Specializes AS S ON T.empId = S.empId 
+        WHERE S.modelNo = %s;
+        """
+        cursor.execute(query, (param,))
+        results = cursor.fetchall()
+
         for row in results:
-            print(row)
+            print(row[0])
     case "7": 
-        query = "SELECT S.name, AVG(P.commissionRate) AS avgCommissionRate FROM Salesman AS S JOIN Purchases AS P ON S.empId = P.empId GROUP BY S.name ORDER BY avgCommissionRate DESC;"
-        results = cursor.execute_query(query)
+        query = """
+            SELECT S.name, AVG(P.commissionRate) AS avgCommissionRate 
+            FROM Salesman AS S 
+            JOIN Purchases AS P ON S.empId = P.empId 
+            GROUP BY S.name 
+            ORDER BY avgCommissionRate DESC;
+            """
+        cursor.execute(query)
+        results = cursor.fetchall()
+
         for row in results:
-            print(row)
+            print(f"Name: {row[0]}, Avg Commission Rate: {row[1]}")
     case "8":
-        query = "SELECT 'Administrator' AS Role, COUNT(*) AS C FROM Administrator UNION SELECT 'Salesman' AS Role, COUNT(*) AS C FROM Salesman UNION SELECT 'Technician' AS Role, COUNT(*) AS C FROM TechnicalSupport;"
-        results = cursor.execute_query(query)
+        query = """
+        SELECT 'Administrator' AS Role, COUNT(*) AS C FROM Administrator 
+        UNION 
+        SELECT 'Salesman' AS Role, COUNT(*) AS C FROM Salesman 
+        UNION 
+        SELECT 'Technician' AS Role, COUNT(*) AS C FROM TechnicalSupport;
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+
         for row in results:
-            print(row)
+            print(f"Role\t\tcnt \n{row[0]}\t\t{row[1]}")
         
 if connection.is_connected():
     cursor.close()
