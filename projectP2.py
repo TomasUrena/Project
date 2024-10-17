@@ -25,9 +25,12 @@ param = sys.argv[2] if len(sys.argv) > 2 else None
 
 match questionNum:
     case "1":
+        if param is None:
+            print("Error Needs <param_street_name>.")
+            sys.exit(1)
         query = """
         SELECT *
-        FROM Sites 
+        FROM Site 
         WHERE LOWER(address) LIKE %s;
         """
         cursor.execute(query, ('%' + param.lower() + '%',))
@@ -40,11 +43,15 @@ match questionNum:
         else:
             print(f"No sites found on the street '{param}'.")
     case "2":
+        if param is None:
+            print("Error Needs <param_schedular_system>.")
+            sys.exit(1)
         query = """
-        SELECT d.serial_no, d.model_no, t.name
-        FROM DigitalDisplays d
-        JOIN TechnicalSupports t ON d.model_no = t.model_no
-        WHERE LOWER(d.scheduler_system) = LOWER(%s);
+        SELECT d.serialNo, d.modelNo, t.name
+        FROM DigitalDisplay d
+        JOIN Specializes s ON d.modelNo = s.modelNo
+        JOIN TechnicalSupport t ON s.empId = t.empId
+        WHERE LOWER(d.schedulerSystem) = LOWER(%s);
         """
         cursor.execute(query, (param,))
         results = cursor.fetchall()
@@ -65,12 +72,11 @@ match questionNum:
         cursor.execute(query)
         results = cursor.fetchall()
         
-        print("Name\tCount")
-        
+        print("Name\t\tCount")
+        print("------------------")
         for row in results:
             name, count = row
-            print(f"{name}\t{count}")
-
+            detail_str = ''
             # If count > 1, show the full attributes
             if count > 1:
                 query_details = """
@@ -80,19 +86,16 @@ match questionNum:
                 """
                 cursor.execute(query_details, (name,))
                 details = cursor.fetchall()
-                # print(f"Details for {name}:")
-                # for detail in details:
-                #     empId, name, gender = detail
-                #     print(f"({empId}, {name}, {gender})")
-                # print("-" * 30)
-                
                 detail_str = ', '.join([f"({empId}, {name}, {gender})" for empId, name, gender in details])
-                print(f"{detail_str}")
-    case "4":
+            print(f"{name}\t{count} {detail_str}")
+    case "4":  
+        if param is None:
+            print("Error Needs <param_phone_no>.")
+            sys.exit(1)
         query = """
         SELECT * 
         FROM Client
-        WHERE phone_no = %s;
+        WHERE phone = %s;
         """
         cursor.execute(query, (param,))
         results = cursor.fetchall()
@@ -116,13 +119,16 @@ match questionNum:
         results = cursor.fetchall()
         
         if results:
-            print("EmpID\tName\tTotal Hours")
+            print("EmpID\tName\t\tTotal Hours")
             for row in results:
                 empId, name, total_hours = row
                 print(f"{empId}\t{name}\t{total_hours}")
         else:
             print("No administrator work hours found.")
     case "6":
+        if param is None:
+            print("Error Needs <param_model_no>.")
+            sys.exit(1)
         query = """
         SELECT T.name 
         FROM TechnicalSupport AS T 
@@ -132,8 +138,9 @@ match questionNum:
         cursor.execute(query, (param,))
         results = cursor.fetchall()
 
+        print("Technical Support Name(s):")
         for row in results:
-            print(row[0])
+            print(f"\t{row[0]}")
     case "7": 
         query = """
             SELECT S.name, AVG(P.commissionRate) AS avgCommissionRate 
@@ -158,8 +165,10 @@ match questionNum:
         cursor.execute(query)
         results = cursor.fetchall()
 
+        print("Role\t\t\tcnt")
+        print("------------------")
         for row in results:
-            print(f"Role\t\tcnt \n{row[0]}\t\t{row[1]}")
+            print(f"{row[0]}\t\t{row[1]}")
         
 if connection.is_connected():
     cursor.close()
