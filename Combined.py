@@ -24,7 +24,7 @@ def find_sites_on_street(street_name):
 
         query = """
         SELECT *
-        FROM Sites 
+        FROM Site 
         WHERE LOWER(address) LIKE %s;
         """
         cursor.execute(query, ('%' + street_name.lower() + '%',))
@@ -33,7 +33,7 @@ def find_sites_on_street(street_name):
         if results:
             print(f"Sites found on the street '{street_name}':")
             for row in results:
-                print(f"id: {row[0]}, name: {row[1]}, Address: {row[2]}")
+                print(f"id: {row[0]}, name: {row[1]}, Address: {row[2]}, Phone: {row[3]}")
         else:
             print(f"No sites found on the street '{street_name}'.")
 
@@ -314,3 +314,4 @@ def main():
 # Entry point of the script
 if __name__ == "__main__":
     main()
+
