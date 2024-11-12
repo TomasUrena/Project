@@ -23,13 +23,19 @@ def main():
                 # Displaying main options to the user
                 print("\nMain Menu:")
                 print("1. Display all the digital displays")
-                print("2. Logout")
+                print("2. Search digital displays given a scheduler system")
+                print("3. Insert a new digital display")
+                print("6. Logout")
 
                 choice = input("\nEnter your choice: ")
 
                 if choice == '1':
                     display_digital_displays(connection)
                 elif choice == '2':
+                    search_digital_displays_by_schdulerSys(connection)
+                elif choice == '3':
+                    insert_new_digital_display(connection)
+                elif choice == '6':
                     print("Logging out...")
                     break
                 else:
@@ -93,7 +99,61 @@ def display_model_details(connection, model_no):
 
     except Error as e:
         print(f"Error: {e}")
-
+        
+def search_digital_displays_by_schdulerSys(connection):
+    try:
+        schedulerSys = input("Enter scheduler system to search for: ")
+        
+        cursor = connection.cursor()
+        cursor.execute("SELECT serialNo, modelNo FROM DigitalDisplay WHERE schedulerSystem = %s", (schedulerSys,))
+        results = cursor.fetchall()
+        
+        if results:
+            print("\nDigital Displays with Scheduler System '{}':".format(schedulerSys))
+            for i, result in enumerate(results, start = 1):
+                print(f"{i}. Serial No: {result[0]}, Model No: {result[1]}")
+    except Error as e:
+        print(f"Error: {e}")
+        
+def insert_new_digital_display(connection):
+    try:
+        serialNo = input("Enter serial number for the new digital display: ")
+        scheduler_sys = input("Enter scheduler system for the new digital display: ")
+        modelNo = input("Enter model number for the new digital display: ")
+        
+        cursor = connection.cursor()
+        cursor.execute("SELECT modelNo FROM Model WHERE modelNo = %s", (modelNo,))
+        model_exists = cursor.fetchall()
+        
+        if not model_exists:
+            print("Model does not exist. Please provide model details. ")
+            width = float(input("Enter model width: "))
+            height = float(input("Enter model height: "))
+            weight = float(input("Enter model weight: "))
+            depth = float(input("Enter model depth: "))
+            screen_size = float(input("Enter model screen_size: "))
+            
+            cursor.execute (
+                "INSERT INTO Model (modelNo, width, height, weight, depth, screenSize) VALUES (%s, %s, %s, %s, %s, %s)",
+                (modelNo, width, height, weight, depth, screen_size)
+            )
+            
+            connection.commit()
+            print("New model added to the Model table. ")
+        else:
+            print("Digital display already exists.")
+            return
+            
+        cursor.execute(
+            "INSERT INTO DigitalDisplay (serialNo, schedulerSystem, modelNo) VALUES (%s, %s, %s)",
+            (serialNo, scheduler_sys, modelNo)
+        )
+        
+        connection.commit()
+        print("New digital display added to the DigitalDisplay table. ")
+            
+    except Error as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
