@@ -25,6 +25,8 @@ def main():
                 print("1. Display all the digital displays")
                 print("2. Search digital displays given a scheduler system")
                 print("3. Insert a new digital display")
+                print('4. Delete a digital display')
+                print('5. Update a digital display')
                 print("6. Logout")
 
                 choice = input("\nEnter your choice: ")
@@ -35,6 +37,10 @@ def main():
                     search_digital_displays_by_schdulerSys(connection)
                 elif choice == '3':
                     insert_new_digital_display(connection)
+                elif choice == '4':
+                    delete_digital_display(connection)
+                elif choice == '5':
+                    update_digital_display(connection)
                 elif choice == '6':
                     print("Logging out...")
                     break
@@ -152,6 +158,118 @@ def insert_new_digital_display(connection):
         connection.commit()
         print("New digital display added to the DigitalDisplay table. ")
             
+    except Error as e:
+        print(f"Error: {e}")
+
+def delete_digital_display(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM DigitalDisplay")
+        displays = cursor.fetchall()
+
+        if displays:
+            print("\nDigital Displays:")
+            for i, display in enumerate(displays, start = 1):
+                print(f"{i}. SerialNo: {display[0]}, SchedulerSystem: {display[1]}, ModelNo: {display[2]}")
+
+            delete = input("\nEnter The Number Corresponding To The Display To Delete It, or 'b' to go back: ")
+
+            if delete.lower() == 'b':
+                return
+            
+            if delete.isdigit() and 1 <= int(delete) <= len(displays):
+                serialNo = displays[int(delete) - 1][0]
+                cursor.execute('''SELECT modelNo 
+                            FROM DigitalDisplay 
+                            WHERE serialNo = %s''', (serialNo,))
+                modelNo = cursor.fetchone()
+                if modelNo:
+                    cursor.execute("DELETE FROM DigitalDisplay WHERE serialNo = %s", (serialNo,)) 
+                    connection.commit()
+                    cursor.execute("SELECT COUNT(*) FROM DigitalDisplay WHERE modelNo = %s", modelNo)
+                    count = cursor.fetchone()[0]
+                    if count == 0:
+                        cursor.execute("DELETE FROM Model WHERE modelNo = %s", (modelNo))
+                        connection.commit()
+                    print('\nDisplay With SerialNo:', serialNo, 'deleted.')
+
+                    cursor.execute("SELECT * FROM DigitalDisplay")
+                    displays = cursor.fetchall()
+                    print("\nDigital Displays:")
+                    for i, display in enumerate(displays, start = 1):
+                        print(f"{i}. SerialNo: {display[0]}, SchedulerSystem: {display[1]}, ModelNo: {display[2]}")
+
+                    cursor.execute("SELECT * FROM Model")
+                    models = cursor.fetchall()
+                    print("\nModels:")
+                    for i, model in enumerate(models, start = 1):
+                        print(f"{i}. ModelNo: {model[0]}, Width: {model[1]}, Height: {model[2]}, Weight: {model[3]}, Depth: {model[4]}, ScreenSize: {model[5]}")
+                else:
+                    print('Display ID Not Found.')
+            else:
+                print("Invalid choice. Returning to main menu.")
+        else:
+            print("No Digital Displays Found.")
+    except Error as e:
+        print(f"Error: {e}")
+
+def update_digital_display(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM DigitalDisplay")
+        displays = cursor.fetchall()
+
+        if displays:
+            print("\nDigital Displays:")
+            for i, display in enumerate(displays, start = 1):
+                print(f"{i}. SerialNo: {display[0]}, SchedulerSystem: {display[1]}, ModelNo: {display[2]}")
+
+            update = input("\nEnter The Number Corresponding To The Display To Update It, or 'b' to go back: ")
+
+            if update.lower() == 'b':
+                return
+
+            if update.isdigit() and 1 <= int(update) <= len(displays):
+                serialNo = displays[int(update) - 1][0]
+                schedulerSystem = input('Enter Updated Digital Display NEW SchedulerSystem: ')
+                modelNo = input('Enter Updated Digital Display NEW ModelNo: ')
+
+                cursor.execute("SELECT modelNo FROM Model WHERE modelNo = %s", (modelNo,))
+                model_exists = cursor.fetchall()
+                
+                if not model_exists:
+                    print("\nModel does not exist. Please provide model details. ")
+                    width = float(input("Enter model width: "))
+                    height = float(input("Enter model height: "))
+                    weight = float(input("Enter model weight: "))
+                    depth = float(input("Enter model depth: "))
+                    screen_size = float(input("Enter model screen_size: "))
+                    cursor.execute ("INSERT INTO Model (modelNo, width, height, weight, depth, screenSize) VALUES (%s, %s, %s, %s, %s, %s)",(modelNo, width, height, weight, depth, screen_size))
+                    connection.commit()
+
+                cursor.execute('''
+                    UPDATE DigitalDisplay
+                    SET schedulerSystem = %s, modelNo = %s
+                    WHERE serialNo = %s
+                    ''', (schedulerSystem, modelNo, serialNo))
+                connection.commit()
+                print('\nDisplay with SerialNo:', serialNo, 'updated.')
+
+                cursor.execute("SELECT * FROM Model")
+                models = cursor.fetchall()
+                print("\nModels:")
+                for i, model in enumerate(models, start = 1):
+                    print(f"{i}. ModelNo: {model[0]}, Width: {model[1]}, Height: {model[2]}, Weight: {model[3]}, Depth: {model[4]}, ScreenSize: {model[5]}")
+
+                cursor.execute("SELECT * FROM DigitalDisplay")
+                displays = cursor.fetchall()
+                print("\nDigital Displays:")
+                for i, display in enumerate(displays, start = 1):
+                    print(f"{i}. SerialNo: {display[0]}, SchedulerSystem: {display[1]}, ModelNo: {display[2]}")
+            else:
+                print("Invalid choice. Returning to main menu.")
+        else:
+            print("No Digital Displays Found.")
     except Error as e:
         print(f"Error: {e}")
 
