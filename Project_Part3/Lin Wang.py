@@ -169,6 +169,12 @@ def insert_new_digital_display(connection):
         connection.commit()
         print("New digital display added to the DigitalDisplay table.")
 
+        cursor.execute("SELECT * FROM DigitalDisplay")
+        displays = cursor.fetchall()
+        print("\nDigital Displays:")
+        for i, display in enumerate(displays, start = 1):
+            print(f"{i}. SerialNo: {display[0]}, SchedulerSystem: {display[1]}, ModelNo: {display[2]}")
+
     except Error as e:
         print(f"Error: {e}")
 
