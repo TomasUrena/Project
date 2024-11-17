@@ -118,6 +118,9 @@ def search_digital_displays_by_schdulerSys(connection):
             print("\nDigital Displays with Scheduler System '{}':".format(schedulerSys))
             for i, result in enumerate(results, start = 1):
                 print(f"{i}. Serial No: {result[0]}, Model No: {result[1]}")
+        else:
+            print("Display not found.")
+            
     except Error as e:
         print(f"Error: {e}")
         
@@ -128,38 +131,47 @@ def insert_new_digital_display(connection):
         modelNo = input("Enter model number for the new digital display: ")
         
         cursor = connection.cursor()
-        cursor.execute("SELECT modelNo FROM Model WHERE modelNo = %s", (modelNo,))
-        model_exists = cursor.fetchall()
+
+        # Check if the digital display with the given serial number already exists
+        cursor.execute("SELECT serialNo FROM DigitalDisplay WHERE serialNo = %s", (serialNo,))
+        display_exists = cursor.fetchone()
         
+        if display_exists:
+            print("Digital display with this serial number already exists.")
+            return  # Stop insertion if the serialNo already exists
+        
+        # Check if the model number exists in the Model table
+        cursor.execute("SELECT modelNo FROM Model WHERE modelNo = %s", (modelNo,))
+        model_exists = cursor.fetchone()
+        
+        # If the model does not exist, prompt user to add model details
         if not model_exists:
-            print("Model does not exist. Please provide model details. ")
+            print("Model does not exist. Please provide model details.")
             width = float(input("Enter model width: "))
             height = float(input("Enter model height: "))
             weight = float(input("Enter model weight: "))
             depth = float(input("Enter model depth: "))
-            screen_size = float(input("Enter model screen_size: "))
-            
-            cursor.execute (
+            screen_size = float(input("Enter model screen size: "))
+
+            # Insert the new model into the Model table
+            cursor.execute(
                 "INSERT INTO Model (modelNo, width, height, weight, depth, screenSize) VALUES (%s, %s, %s, %s, %s, %s)",
                 (modelNo, width, height, weight, depth, screen_size)
             )
-            
             connection.commit()
-            print("New model added to the Model table. ")
-        else:
-            print("Digital display already exists.")
-            return
-            
+            print("New model added to the Model table.")
+
+        # Insert the new digital display into the DigitalDisplay table
         cursor.execute(
             "INSERT INTO DigitalDisplay (serialNo, schedulerSystem, modelNo) VALUES (%s, %s, %s)",
             (serialNo, scheduler_sys, modelNo)
         )
-        
         connection.commit()
-        print("New digital display added to the DigitalDisplay table. ")
-            
+        print("New digital display added to the DigitalDisplay table.")
+
     except Error as e:
         print(f"Error: {e}")
+
 
 def delete_digital_display(connection):
     try:
