@@ -57,54 +57,30 @@ def main():
 
 
 def display_digital_displays(connection):
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT serialNo, modelNo FROM DigitalDisplay")
-        displays = cursor.fetchall()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM DigitalDisplay")
+    records = cursor.fetchall()
+    print("\nDigital Displays:")
+    for row in records:
+        print(row)
 
-        if displays:
-            print("\nDigital Displays:")
-            for i, display in enumerate(displays, start=1):
-                print(f"{i}. Serial No: {display[0]}, Model No: {display[1]}")
-
-            model_choice = input(
-                "\nEnter the number corresponding to the display to view detailed model information, or 'b' to go back: ")
-
-            if model_choice.lower() == 'b':
-                return
-
-            if model_choice.isdigit() and 1 <= int(model_choice) <= len(displays):
-                model_no = displays[int(model_choice) - 1][1]
-                display_model_details(connection, model_no)
-            else:
-                print("Invalid choice. Returning to main menu.")
-        else:
-            print("No digital displays found.")
-
-    except Error as e:
-        print(f"Error: {e}")
+    model_no = input("Enter the model number to view detailed information or press Enter to go back: ")
+    if model_no:
+        display_model_details(connection, model_no)
+    cursor.close()
 
 
 def display_model_details(connection, model_no):
-    try:
-        cursor = connection.cursor()
-        # Fetching model details from the database
-        cursor.execute("SELECT * FROM Model WHERE modelNo = %s", (model_no,))
-        model_details = cursor.fetchone()
-
-        if model_details:
-            print("\nModel Details:")
-            print(f"Model No: {model_details[0]}")
-            print(f"Width: {model_details[1]}")
-            print(f"Height: {model_details[2]}")
-            print(f"Weight: {model_details[3]}")
-            print(f"Depth: {model_details[4]}")
-            print(f"Screen Size: {model_details[5]}")
-        else:
-            print("Model details not found.")
-
-    except Error as e:
-        print(f"Error: {e}")
+    cursor = connection.cursor()
+    query = "SELECT * FROM Model WHERE modelNo = %s"
+    cursor.execute(query, (model_no,))
+    record = cursor.fetchone()
+    if record:
+        print("\nModel Details:")
+        print(record)
+    else:
+        print("No model found with the given model number.")
+    cursor.close()
         
 def search_digital_displays_by_schdulerSys(connection):
     try:
